@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class sumar_introducciones : MonoBehaviour
 {
+    public GameObject MenuPrincipal_vista;
+    public GameObject SumarCartas_vista;
+
     public GameObject ins_1;
     public GameObject ins_2;
     public GameObject ins_3;
@@ -13,6 +16,7 @@ public class sumar_introducciones : MonoBehaviour
     public GameObject boton_show_panel;
 
     public GameObject juego;
+    public SumarCartas_n sumarCartas;
 
     void Start()
     {
@@ -37,8 +41,8 @@ public class sumar_introducciones : MonoBehaviour
 
     public void empezar_juego()
     {
+        sumarCartas.EmpezarJuego();
         instrucciones.SetActive(false);
-        juego.SetActive(true);
     }
 
     public void showPanel()
@@ -53,6 +57,11 @@ public class sumar_introducciones : MonoBehaviour
             panel.SetActive(true);
             boton_show_panel.SetActive(false);
         }
+    }
 
+    public void Final()
+    {
+        MenuPrincipal_vista.SetActive(true);
+        SumarCartas_vista.SetActive(false);
     }
 }

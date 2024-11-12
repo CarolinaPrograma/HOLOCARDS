@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Windows.Speech;
 using UnityEngine.UI;
 using TMPro;
+using System.Diagnostics;
 
 public class AsociarFrases : MonoBehaviour
 {
@@ -22,10 +23,21 @@ public class AsociarFrases : MonoBehaviour
     // Almacenar los prefabs
     public List<GameObject> cardPrefabsList;
 
+    // Modalidades
+    private string[] cards_aleatorio = { "10C", "10D", "10H", "10S", "2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "AC", "AD", "AH", "AS", "JC", "JD", "JH", "JS", "KC", "KD", "KH", "KS", "QC", "QD", "QH", "QS" };
+    string[] rojas = { "10D", "10H", "2D", "2H", "3D", "3H", "4D", "4H", "5D", "5H", "6D", "6H", "7D", "7H", "8D", "8H", "9D", "9H", "AD", "AH", "JD", "JH", "KD", "KH", "QD", "QH" };
+    string[] negras = { "10C", "10S", "2C", "2S", "3C", "3S", "4C", "4S", "5C", "5S", "6C", "6S", "7C", "7S", "8C", "8S", "9C", "9S", "AC", "AS", "JC", "JS", "KC", "KS", "QC", "QS" };
+    string[] diamantes = { "10D", "2D", "3D", "4D", "5D", "6D", "7D", "8D", "9D", "AD", "JD", "KD", "QD" };
+    string[] corazones = { "10H", "2H", "3H", "4H", "5H", "6H", "7H", "8H", "9H", "AH", "JH", "KH", "QH" };
+    string[] tréboles = { "10C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "AC", "JC", "KC", "QC" };
+    string[] picas = { "10S", "2S", "3S", "4S", "5S", "6S", "7S", "8S", "9S", "AS", "JS", "KS", "QS" };
+
+    private float remainingTime;
+    private float remainingTime_panel;
+    public TMP_Text time_panel_text;
 
     private HashSet<string> cartasReconocidas = new HashSet<string>();
-
-    private string[] cards = { "10C", "10D", "10H", "10S", "2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "AC", "AD", "AH", "AS", "JC", "JD", "JH", "JS", "KC", "KD", "KH", "KS", "QC", "QD", "QH", "QS" };
+    
     private string[] frases = { "¡Buenos días!", "Elefante", "Naipes", "Cielo", "Estrella", "Música", "Amor", "Sonrisa",
     "Montaña", "Río", "Sol", "Luna", "Flor", "Mariposa", "Corazón", "Amistad", "Familia",
     "Felicidad", "Libertad", "Esperanza", "Paz", "Aventura", "Sueño", "Libro", "Chocolate",
@@ -52,11 +64,13 @@ public class AsociarFrases : MonoBehaviour
     private string CartaActual ="";
 
     // Estadísticas
-    private int correctAnswers = 0;
-    private int incorrectAnswers = 0;
-    private int hintsUsed = 0;
-    private float elapsedTime = 0f;
-    private bool gameStarted = false;
+    private int aciertos = 0;
+    private int fallos = 0;
+    private int numero_pistas = 0;
+    private bool exito;
+    private List<int> tiempo_carta = new List<int>();
+    private Stopwatch cronometro = new Stopwatch();
+    public MenuPrincipal MenuPrincipal;
 
     private List<string> pistas = new List<string>
     {
@@ -68,33 +82,85 @@ public class AsociarFrases : MonoBehaviour
 
     public GameObject handmenu;
 
-    private void Start()
+    // Parámetros
+    private string id_juego;
+    private int numero;
+    private int tiempo_total;
+    private string[] cards;
+    private int t_panel;
+    private bool isGameActive = false;
+    
+
+    // Tiempos, Final...
+    public TMP_Text contador_UI;
+    public GameObject finalPanel;
+    private bool isChecking;
+
+    public void Asociar_Frases(string id, int cartas, int tiempo, string modalidad, int tiempo_panel)
     {
         keywordRecognizer = null;
 
         if (detector == null)
         {
-            Debug.LogError("Detector reference not set in GameController.");
+            UnityEngine.Debug.LogError("Detector reference not set in GameController.");
             return;
         }
 
+        id_juego = id;
+        numero = cartas;
+        tiempo_total = tiempo;
+        remainingTime = tiempo_total;
+        t_panel = tiempo_panel;
+        remainingTime_panel = tiempo_panel;
+
+
+        if      (modalidad == "Aleatorio") { cards = cards_aleatorio; }
+        else if (modalidad == "Rojas") { cards = rojas; }
+        else if (modalidad == "Negras") { cards = negras; }
+        else if (modalidad == "Picas") { cards = picas; }
+        else if (modalidad == "Treboles") { cards = tréboles; }
+        else if (modalidad == "Diamantes") { cards = diamantes; }
+        else if (modalidad == "Corazones") { cards = corazones; }
+
+
         LoadCardPrefabs();
         Random_Cartas();
-        ShowUIPanel();
-
 
         keywordRecognizer = new KeywordRecognizer(staticKeywords);
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         keywordRecognizer.Start();
 
         handmenu.SetActive(true);
+    }
 
-        // Estadísticas
-        correctAnswers = 0;
-        incorrectAnswers = 0;
-        hintsUsed = 0;
-        elapsedTime = 0f;
-        gameStarted = true;
+
+    void Update()
+    {
+        UnityEngine.Debug.Log("Entro a update");
+        if (!isGameActive) return;
+
+        // Controlar el tiempo restante
+        remainingTime -= Time.deltaTime;
+        contador_UI.text = $"{System.Convert.ToInt32(remainingTime)}";
+
+        UnityEngine.Debug.Log(remainingTime);
+        if (remainingTime <= 0)
+        {
+            EndGame("Tiempo agotado");
+            exito = false;
+            return;
+        }
+
+        if (isChecking && detector.HasResults() && !uiPanel.activeSelf)
+        {
+            var results = detector.GetResults();
+            HandleResults(results);
+        }
+    }
+
+    public void EmpezarJuego()
+    {
+        ShowUIPanel();
     }
 
     private void LoadCardPrefabs()
@@ -108,7 +174,7 @@ public class AsociarFrases : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Prefab for card {card} not found in Resources!");
+                UnityEngine.Debug.LogWarning($"Prefab for card {card} not found in Resources!");
             }
         }
     }
@@ -118,12 +184,12 @@ public class AsociarFrases : MonoBehaviour
         HashSet<int> indices_cartas = new HashSet<int>();
         HashSet<int> indices_frases = new HashSet<int>();
 
-        while (indices_cartas.Count < 4)
+        while (indices_cartas.Count < numero)
         {
             indices_cartas.Add(Random.Range(0, cards.Length));
         }
 
-        while (indices_frases.Count < 4)
+        while (indices_frases.Count < numero)
         {
             indices_frases.Add(Random.Range(0, frases.Length));
         }
@@ -134,7 +200,7 @@ public class AsociarFrases : MonoBehaviour
         List<int> lista_indices_frases = new List<int>(indices_frases);
 
         string frasesTextContent = "";
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < numero; i++)
         {
             int carta_index = lista_indices_cartas[i];
             int frase_index = lista_indices_frases[i];
@@ -151,7 +217,6 @@ public class AsociarFrases : MonoBehaviour
     {
         if (index < cardContainers.Count && index < fraseTexts.Count)
         {
-            // Buscar el prefab de la carta en la lista
             GameObject prefab = cardPrefabsList.Find(p => p.name == card);
             if (prefab != null)
             {
@@ -160,41 +225,38 @@ public class AsociarFrases : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Prefab for card {card} not found in list!");
+                UnityEngine.Debug.LogWarning($"Prefab for card {card} not found in list!");
             }
 
-            // Asignar la frase al TextMeshPro correspondiente
             fraseTexts[index].text = frase;
         }
         else
         {
-            Debug.LogWarning("Index out of range for cardContainers or fraseTexts.");
+            UnityEngine.Debug.LogWarning("Index out of range for cardContainers or fraseTexts.");
         }
     }
 
-    private void ShowUIPanel()
+    public void ShowUIPanel()
+    {
+        StartCoroutine(TiempoPanel());
+    }
+
+    public IEnumerator TiempoPanel()
     {
         uiPanel.SetActive(true);
-    }
 
-    public void StartGame()
-    {
+        while (remainingTime_panel > 0)
+        {
+
+            time_panel_text.text = remainingTime_panel.ToString("F1") + "s";
+            yield return null;
+            remainingTime_panel -= Time.deltaTime;
+        }
+
+        time_panel_text.text = "0s";
+
         uiPanel.SetActive(false);
-        boton_mostrar_panel.SetActive(true);
-    }
-
-    private void Update()
-    {
-        if (gameStarted)
-        {
-            elapsedTime += Time.deltaTime;
-        }
-
-        if (detector.HasResults() && !uiPanel.activeSelf)
-        {
-            var results = detector.GetResults();
-            HandleResults(results);
-        }
+        isGameActive = true;
     }
 
     private void HandleResults(IEnumerable<ResultBox> results)
@@ -210,28 +272,29 @@ public class AsociarFrases : MonoBehaviour
     {
         if (cartasReconocidas.Contains(card))
         {
-            return; // Salir si la carta ya ha sido reconocida
+            return; 
         }
 
         InstantiateCardPrefab_reconocida(card);
         CartaActual = card;
-
+        cronometro.Restart();
         if (fraseReconocidaActual != null && cartaReconocidaActual != null)
         {
             // AVISO DE ERROR!
             feedback.SetActive(true);
             texto_corrrecto_incorrecto.SetText($"No has dicho la palabra de la carta anterior: {fraseReconocidaActual}. Continúe");
             Invoke("Apagar_feedback", 5f);
-            Debug.Log($"Error: se ha reconocido una nueva carta ({card}) antes de decir la frase de la carta anterior ({cartaReconocidaActual}).");
+            UnityEngine.Debug.Log($"Error: se ha reconocido una nueva carta ({card}) antes de decir la frase de la carta anterior ({cartaReconocidaActual}).");
             cartaReconocidaActual = null;
             cartaReconocidaActual = null;
 
-            incorrectAnswers++;
+            fallos += fallos;
             correctPhraseCount++;
 
-            if (correctPhraseCount >= 4)
+            if (correctPhraseCount >= numero)
             {
-                TerminarJuego();
+                exito = true;
+                EndGame("Se ha acabado");
             }
         }
 
@@ -264,7 +327,7 @@ public class AsociarFrases : MonoBehaviour
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         keywordRecognizer.Start();
 
-        Debug.Log($"Escuchando... Di la frase: {nuevaFrase}");
+        UnityEngine.Debug.Log($"Escuchando... Di la frase: {nuevaFrase}");
         //texto_corrrecto_incorrecto.SetText($"Escuchando...");
     }
 
@@ -279,7 +342,7 @@ public class AsociarFrases : MonoBehaviour
 
     private void KeywordRecognizer_OnPhraseRecognized(PhraseRecognizedEventArgs args)
     {
-        Debug.Log($"Frase reconocida: {args.text}");
+        UnityEngine.Debug.Log($"Frase reconocida: {args.text}");
 
         if (args.text == "Mostrar panel")
         {
@@ -295,30 +358,32 @@ public class AsociarFrases : MonoBehaviour
         if (args.text == fraseReconocida)
         {
             panel_correcto_incorrecto.SetActive(true);
-            Debug.Log("¡Correcto!");
+            UnityEngine.Debug.Log("¡Correcto!");
+            cronometro.Stop();
+            tiempo_carta.Add((int)cronometro.ElapsedMilliseconds);
             keywordRecognizer.Stop();
             keywordRecognizer.Dispose();
             feedback.SetActive(true);
             texto_corrrecto_incorrecto.SetText($"¡Muy bien! Coja la siguiente carta");
             Invoke("Apagar_feedback", 3f);
-            correctAnswers++; // Incrementa los aciertos
+            aciertos++; 
             fraseReconocidaActual = null;
             cartaReconocidaActual = null;
         }
         else
         {
             panel_correcto_incorrecto.SetActive(true);
-            Debug.Log($"No es la palabra. La palabra era {fraseReconocida}");
+            UnityEngine.Debug.Log($"No es la palabra. La palabra era {fraseReconocida}");
             texto_corrrecto_incorrecto.SetText($"No es la palabra. La palabra era {fraseReconocida}");
             feedback.SetActive(true);
             texto_corrrecto_incorrecto.SetText($"No has dicho la palabra de la carta anterior: {fraseReconocidaActual}");
             Invoke("Apagar_feedback", 5f);
-            incorrectAnswers++; // Incrementa los errores
+            fallos++; // Incrementa los errores
         }
 
-        if (correctPhraseCount >= 4)
+        if (correctPhraseCount >= numero)
         {
-            TerminarJuego();
+            EndGame("Enhorabuena");
         }
     }
 
@@ -331,7 +396,7 @@ public class AsociarFrases : MonoBehaviour
             keywordRecognizer = null;
             texto_corrrecto_incorrecto.SetText($"Reconocimiento detenido.");
             Invoke("desaparecer_panel", 1f);
-            Debug.Log("Reconocimiento detenido.");
+            UnityEngine.Debug.Log("Reconocimiento detenido.");
         }
     }
 
@@ -345,7 +410,7 @@ public class AsociarFrases : MonoBehaviour
         panel_correcto_incorrecto.SetActive(true);
         texto_corrrecto_incorrecto.SetText("No se reconoció la frase a tiempo.");
         Invoke("desaparecer_panel", 3f);
-        Debug.Log("Error: No se reconoció la frase a tiempo.");
+        UnityEngine.Debug.Log("Error: No se reconoció la frase a tiempo.");
     }
 
     private void Apagar_feedback()
@@ -355,13 +420,11 @@ public class AsociarFrases : MonoBehaviour
 
     private void InstantiateCardPrefab_reconocida(string card)
     {
-        // Clean the container before instantiating the new prefab
         foreach (Transform child in cardContainers_actual.transform)
         {
             Destroy(child.gameObject);
         }
 
-        // Find the prefab of the card in the list
         GameObject prefab = cardPrefabsList.Find(p => p.name == card);
         if (prefab != null)
         {
@@ -369,7 +432,7 @@ public class AsociarFrases : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Prefab for card {card} not found in list!");
+            UnityEngine.Debug.LogWarning($"Prefab for card {card} not found in list!");
         }
     }
 
@@ -382,6 +445,7 @@ public class AsociarFrases : MonoBehaviour
             Invoke("desaparecer_panel", 3f);
             return;
         }
+        numero_pistas++;
         if (cartas_frases.ContainsKey(CartaActual))
         {
             string frase = cartas_frases[CartaActual];
@@ -389,7 +453,6 @@ public class AsociarFrases : MonoBehaviour
 
             panel_correcto_incorrecto.SetActive(true);
             texto_corrrecto_incorrecto.SetText(pista);
-            hintsUsed++; // Incrementa las pistas usadas
             Invoke("desaparecer_panel", 5f);
         }
         else
@@ -442,23 +505,12 @@ public class AsociarFrases : MonoBehaviour
         return new string(pistaArray);
     }
 
-    private void TerminarJuego()
+    private async void EndGame(string message)
     {
-        Debug.Log("Juego terminado. Has encontrado 8 parejas de cartas.");
-        Debug.Log($"correctAnswers: {correctAnswers}, hintsUsed: {hintsUsed}, elapsedTime: {elapsedTime}");
-
-        panel_correcto_incorrecto.SetActive(true);
-        texto_corrrecto_incorrecto.SetText("¡Felicidades! El juego ha terminado.");
-        Invoke("Apagar_feedback", 5f);
-
-        gameStarted = false; // Detiene el contador de tiempo
-
-        // Guardar estadísticas
-        GameSession session = new GameSession(correctAnswers, hintsUsed, elapsedTime);
-        StatsManager.Instance.AddGameSession(2, session); // Suponiendo que este es el juego 1
-
-        // Detener el reconocimiento de palabras
+        isGameActive = false;
         keywordRecognizer.Stop();
-        keywordRecognizer.Dispose();
+        UnityEngine.Debug.Log(message);
+        await MenuPrincipal.resultados_AsociarFrases(id_juego, tiempo_carta, exito, aciertos, fallos, numero_pistas);
+        finalPanel.SetActive(true);
     }
 }

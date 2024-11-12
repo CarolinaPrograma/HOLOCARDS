@@ -52,7 +52,7 @@ namespace Assets.Scripts.TextureProviders
                 if (!cam.isFrontFacing)
                     return cam.name;
             }
-            return WebCamTexture.devices[0].name;
+            return WebCamTexture.devices[1].name;
         }
 
     }

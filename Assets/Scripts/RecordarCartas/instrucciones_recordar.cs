@@ -12,7 +12,10 @@ public class instrucciones_recordar : MonoBehaviour
     public GameObject panel;
     public GameObject boton_show_panel;
 
-    public GameObject juego;
+    public RecordarCartas recordarCartas;
+
+    public GameObject MenuPrincipal_vista;
+    public GameObject RecordarCartas_vista;
 
     void Start()
     {
@@ -38,9 +41,15 @@ public class instrucciones_recordar : MonoBehaviour
     public void empezar_juego()
     {
         instrucciones.SetActive(false);
-        juego.SetActive(true);
+        recordarCartas.EmpezarJuego();
     }
 
+    public void volver_menuprincipal()
+    {
+        MenuPrincipal_vista.SetActive(true);
+        RecordarCartas_vista.SetActive(false);
+
+    }
     public void showPanel()
     {
         if (panel.activeSelf)

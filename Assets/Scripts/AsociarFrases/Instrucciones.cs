@@ -12,7 +12,7 @@ public class instruFrases : MonoBehaviour
     public GameObject panel;
     public GameObject boton_show_panel;
 
-    public GameObject juego;
+    public AsociarFrases AsociarFrases;
 
     void Start()
     {
@@ -38,21 +38,29 @@ public class instruFrases : MonoBehaviour
     public void empezar_juego()
     {
         instrucciones.SetActive(false);
-        juego.SetActive(true);
+        AsociarFrases.EmpezarJuego();
     }
 
-    public void showPanel()
+    public void ShowPanel()
     {
         if (panel.activeSelf)
         {
-            panel.SetActive(false); 
+            panel.SetActive(false);
             boton_show_panel.SetActive(true);
         }
         else
         {
             panel.SetActive(true);
             boton_show_panel.SetActive(false);
+
+            StartCoroutine(HidePanelAfterTime(5f));
         }
-        
+    }
+
+    private IEnumerator HidePanelAfterTime(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        panel.SetActive(false);
+        boton_show_panel.SetActive(true);
     }
 }
