@@ -77,6 +77,8 @@ public class SumarCartas_n : MonoBehaviour
     public MenuPrincipal MenuPrincipal;
     public void Sumar_Cartas(string id, int parejas, int tiempo, string modalidad)
     {
+        keywordRecognizer = null;
+
         UnityEngine.Debug.Log("Entro a Sumar Cartas");
         if (detector == null)
         {
@@ -392,6 +394,7 @@ public class SumarCartas_n : MonoBehaviour
     {
         isGameActive = false;
         keywordRecognizer.Stop();
+        keywordRecognizer.Dispose();
         UnityEngine.Debug.Log(message);
         await MenuPrincipal.resultados_SumarCartas(id_juego, tiempo_suma, tiempo_tardado, exito, aciertos, fallos);
         finalPanel.SetActive(true);

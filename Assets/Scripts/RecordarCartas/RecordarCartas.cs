@@ -78,6 +78,7 @@ public class RecordarCartas : MonoBehaviour
 
     public void Recordar_Cartas(string id, int cartas, int tiempo, string modalidad, int tiempo_panel)
     {
+        keywordRecognizer = null; 
         if (detector == null)
         {
             UnityEngine.Debug.LogError("Detector reference not set in GameController.");
@@ -92,7 +93,7 @@ public class RecordarCartas : MonoBehaviour
         remainingTime_panel = tiempo_panel;
 
 
-        if (modalidad == "aleatorio") { cards = cards_aleatorio; }
+        if (modalidad == "Aleatorio") { cards = cards_aleatorio; }
         else if (modalidad == "Rojas") { cards = rojas; }
         else if (modalidad == "Negras") { cards = negras; }
         else if (modalidad == "Picas") { cards = picas; }
@@ -521,6 +522,7 @@ public class RecordarCartas : MonoBehaviour
     {
         isGameActive = false;
         keywordRecognizer.Stop();
+        keywordRecognizer.Dispose();
         UnityEngine.Debug.Log(message);
         await MenuPrincipal.resultados_RecordarCartas(id_juego, numero_pistas, exito, numero_intentos, tiempo_tardado);
         finalPanel.SetActive(true);

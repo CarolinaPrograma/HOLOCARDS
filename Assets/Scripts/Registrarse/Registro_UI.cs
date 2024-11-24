@@ -1,16 +1,13 @@
-using Firebase;
-using Firebase.Auth;
-using Firebase.Extensions;
-using Firebase.Firestore;
 using System;
-using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class Registro_UI : MonoBehaviour
 {
+    private string apiKey = "AIzaSyCjV92iYQViqtOVUnK9OVdiFH0K2LwNX3c";
     public GameObject menuPrincipal;
     public GameObject login_registro;
 
@@ -18,76 +15,10 @@ public class Registro_UI : MonoBehaviour
     public TMP_InputField passwordInputField;
     public TMP_Text feedbackText;
 
-    private FirebaseAuth auth;
-
-    void Start()
-    {
-        auth = FirebaseAuth.DefaultInstance;
-    }
-
-    public void RegisterNewUser()
-    {
-        string email = emailInputField.text;
-        string password = passwordInputField.text;
-
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            feedbackText.text = "Por favor, introduce un correo y una contraseña válidos.";
-            return;
-        }
-
-        auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCanceled || task.IsFaulted)
-            {
-                feedbackText.text = "Error al registrar: " + task.Exception.InnerExceptions[0].Message;
-            }
-            else
-            {
-
-                Firebase.Auth.AuthResult authResult = task.Result;
-                FirebaseUser newUser = authResult.User;
-
-                feedbackText.text = "Registro exitoso. Usuario: " + newUser.Email;
-                Debug.Log("Usuario registrado con éxito: " + newUser.Email);
-
-                SaveUserToDatabase(newUser);
-
-                menuPrincipal.SetActive(true);
-                login_registro.SetActive(false);
-            }
-        });
-    }
-
-
-    private void SaveUserToDatabase(FirebaseUser user)
-    {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-
-        Dictionary<string, object> userInfo = new Dictionary<string, object>
-    {
-        { "email", user.Email },
-        { "uid", user.UserId },
-        { "role", "paciente" },  
-        { "registrationDate", FieldValue.ServerTimestamp }
-    };
-
-        db.Collection("users").Document(user.UserId).SetAsync(userInfo).ContinueWithOnMainThread(task =>
-        {
-            if (task.IsCompleted)
-            {
-                Debug.Log("Usuario guardado en la base de datos Firestore.");
-            }
-            else
-            {
-                Debug.LogError("Error guardando en Firestore: " + task.Exception);
-            }
-        });
-    }
+    private static readonly HttpClient httpClient = new HttpClient();
 
     public async void LoginUser()
     {
-        Debug.Log("Entro a loginuser");
         string email = emailInputField.text;
         string password = passwordInputField.text;
 
@@ -98,31 +29,77 @@ public class Registro_UI : MonoBehaviour
             return;
         }
 
+        await LoginCoroutine(email, password);
+    }
+
+    private async Task LoginCoroutine(string email, string password)
+    {
+        string url = $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}";
+        Debug.Log(email);
+        Debug.Log(password);
+
+        FirebaseAuthRequest payload = new FirebaseAuthRequest
+        {
+            email = email,
+            password = password,
+            returnSecureToken = true
+        };
+        string jsonPayload = JsonUtility.ToJson(payload);
+        Debug.Log("JSON Payload: " + jsonPayload);
+
         try
         {
-            var result = await auth.SignInWithEmailAndPasswordAsync(email, password);
-            if (result.User == null)
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Debug.LogError("El usuario es null, algo falló en la autenticación.");
-                feedbackText.text = "Error al obtener los datos del usuario.";
-                return;
+                Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
+            };
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                Debug.Log("Inicio de sesión exitoso: " + responseContent);
+
+                FirebaseAuthResponse authResponse = JsonUtility.FromJson<FirebaseAuthResponse>(responseContent);
+
+                PlayerPrefs.SetString("patientId", authResponse.localId);
+                PlayerPrefs.SetString("firebaseIdToken", authResponse.idToken);
+                PlayerPrefs.Save();
+
+                feedbackText.text = "Inicio de sesión exitoso. Bienvenido: " + email;
+                login_registro.SetActive(false);
+                menuPrincipal.SetActive(true);
             }
-
-            FirebaseUser user = result.User;
-            Debug.Log("USER: " + user.UserId);
-            PlayerPrefs.SetString("patientId", user.UserId);
-            PlayerPrefs.Save();
-
-            feedbackText.text = "Inicio de sesión exitoso. Bienvenido: " + user.Email;
-            Debug.Log("Inicio de sesión exitoso");
-
-            login_registro.SetActive(false);
-            menuPrincipal.SetActive(true);
+            else
+            {
+                string errorContent = await response.Content.ReadAsStringAsync();
+                Debug.Log("Error al iniciar sesión: " + errorContent);
+                feedbackText.text = "Error al iniciar sesión. Email o contraseña incorrectas " ;
+            }
         }
         catch (Exception e)
         {
-            Debug.LogError("Error en el inicio de sesión: " + e.Message);
-            feedbackText.text = "Error al iniciar sesión";
+            Debug.Log("Excepción durante el inicio de sesión: " + e.Message);
+            feedbackText.text = "Error al conectar con el servidor.";
         }
+    }
+
+    [System.Serializable]
+    private class FirebaseAuthRequest
+    {
+        public string email;
+        public string password;
+        public bool returnSecureToken;
+    }
+
+    [System.Serializable]
+    private class FirebaseAuthResponse
+    {
+        public string idToken;
+        public string email;
+        public string refreshToken;
+        public string localId;
+        public string displayName;
     }
 }

@@ -509,6 +509,7 @@ public class AsociarFrases : MonoBehaviour
     {
         isGameActive = false;
         keywordRecognizer.Stop();
+        keywordRecognizer.Dispose();
         UnityEngine.Debug.Log(message);
         await MenuPrincipal.resultados_AsociarFrases(id_juego, tiempo_carta, exito, aciertos, fallos, numero_pistas);
         finalPanel.SetActive(true);

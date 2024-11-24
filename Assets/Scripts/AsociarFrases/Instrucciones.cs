@@ -14,6 +14,9 @@ public class instruFrases : MonoBehaviour
 
     public AsociarFrases AsociarFrases;
 
+    public GameObject MenuPrincipal_vista;
+    public GameObject AsociarFrases_vista;
+
     void Start()
     {
         ins_1.SetActive(true);
@@ -55,6 +58,13 @@ public class instruFrases : MonoBehaviour
 
             StartCoroutine(HidePanelAfterTime(5f));
         }
+    }
+
+    public void volver_menuprincipal()
+    {
+        MenuPrincipal_vista.SetActive(true);
+        AsociarFrases_vista.SetActive(false);
+
     }
 
     private IEnumerator HidePanelAfterTime(float seconds)
