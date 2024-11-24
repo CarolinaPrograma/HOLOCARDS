@@ -8446,7 +8446,7 @@ PrefabInstance:
         type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1847514843}
+      objectReference: {fileID: 604320617}
     - target: {fileID: 8376646494505211226, guid: c6b351a67ceb69140b199996bbbea156,
         type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
@@ -8460,7 +8460,7 @@ PrefabInstance:
     - target: {fileID: 8376646494505211226, guid: c6b351a67ceb69140b199996bbbea156,
         type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: instrucciones_recordar, Assembly-CSharp
+      value: instruFrases, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8376646494505211226, guid: c6b351a67ceb69140b199996bbbea156,
         type: 3}
@@ -23759,6 +23759,16 @@ PrefabInstance:
       propertyPath: boton_show_panel
       value: 
       objectReference: {fileID: 330227322}
+    - target: {fileID: 6640234781946884269, guid: d254cea61430f8b4c85a91de665f7d37,
+        type: 3}
+      propertyPath: AsociarFrases_vista
+      value: 
+      objectReference: {fileID: 1211115022}
+    - target: {fileID: 6640234781946884269, guid: d254cea61430f8b4c85a91de665f7d37,
+        type: 3}
+      propertyPath: MenuPrincipal_vista
+      value: 
+      objectReference: {fileID: 520262903}
     - target: {fileID: 6643278891906894298, guid: d254cea61430f8b4c85a91de665f7d37,
         type: 3}
       propertyPath: m_SizeDelta.y
