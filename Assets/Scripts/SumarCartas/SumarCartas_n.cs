@@ -19,7 +19,7 @@ public class SumarCartas_n : MonoBehaviour
     private string id_juego;
     private int numeroparejas;
     private int tiempo_total;
-    private string[] cards;
+    private string[] currentCards;
 
     //  Modalidades
     private string[] cards_con_figuras = { "10C", "10D", "10H", "10S", "2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "AC", "AD", "AH", "AS", "JC", "JD", "JH", "JS", "KC", "KD", "KH", "KS", "QC", "QD", "QH", "QS" };
@@ -93,11 +93,11 @@ public class SumarCartas_n : MonoBehaviour
 
         if (modalidad == "Solo números")
         {
-            cards = cards_sin_figuras;
+            currentCards = cards_sin_figuras;
         }
         else
         {
-            cards = cards_con_figuras;
+            currentCards = cards_con_figuras;
         }
 
 
@@ -130,14 +130,11 @@ public class SumarCartas_n : MonoBehaviour
 
     private void Update()
     {
-        UnityEngine.Debug.Log("Entro a update");
         if (!isGameActive) return;
 
         // Controlar el tiempo restante
         remainingTime -= Time.deltaTime;
         contador_UI.text = $"{Convert.ToInt32(remainingTime)}";
-
-        UnityEngine.Debug.Log(remainingTime);
         if (remainingTime <= 0)
         {
             tiempo_tardado = tiempo_total;
@@ -148,6 +145,7 @@ public class SumarCartas_n : MonoBehaviour
 
         if (detector.HasResults())
         {
+            UnityEngine.Debug.Log("detector.HasResults");
             var results = detector.GetResults();
             HandleResults(results);
         }
@@ -167,10 +165,19 @@ public class SumarCartas_n : MonoBehaviour
 
             int mostFrequentClassIndex = GetMostFrequentIndex(recentIdentifications);
 
-            if (mostFrequentClassIndex >= 0 && mostFrequentClassIndex < cards.Length)
+            if (mostFrequentClassIndex >= 0 && mostFrequentClassIndex < cards_con_figuras.Length)
             {
-                var card = cards[mostFrequentClassIndex];
-                ReconocerCarta(card);
+                var card = cards_con_figuras[mostFrequentClassIndex];
+                if (currentCards.Contains(card))
+                {
+                    ReconocerCarta(card);
+                }
+                else
+                {
+                    feedback.SetActive(true);
+                    texto_feedback.SetText("Esta partida es sin figuras!");
+                    Invoke("Apagar_feedback", 2f);
+                }
 
                 //// Verificar si se ha alcanzado el número de parejas necesarias
                 //if (parejasReconocidas >= numeroparejas)
@@ -324,7 +331,7 @@ public class SumarCartas_n : MonoBehaviour
 
     private void LoadCardPrefabs()
     {
-        foreach (var card in cards)
+        foreach (var card in cards_con_figuras)
         {
             GameObject prefab = Resources.Load<GameObject>($"{card}");
             if (prefab != null)

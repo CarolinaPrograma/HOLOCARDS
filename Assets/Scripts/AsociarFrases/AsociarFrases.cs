@@ -24,13 +24,14 @@ public class AsociarFrases : MonoBehaviour
     public List<GameObject> cardPrefabsList;
 
     // Modalidades
-    private string[] cards_aleatorio = { "10C", "10D", "10H", "10S", "2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "AC", "AD", "AH", "AS", "JC", "JD", "JH", "JS", "KC", "KD", "KH", "KS", "QC", "QD", "QH", "QS" };
-    string[] rojas = { "10D", "10H", "2D", "2H", "3D", "3H", "4D", "4H", "5D", "5H", "6D", "6H", "7D", "7H", "8D", "8H", "9D", "9H", "AD", "AH", "JD", "JH", "KD", "KH", "QD", "QH" };
-    string[] negras = { "10C", "10S", "2C", "2S", "3C", "3S", "4C", "4S", "5C", "5S", "6C", "6S", "7C", "7S", "8C", "8S", "9C", "9S", "AC", "AS", "JC", "JS", "KC", "KS", "QC", "QS" };
-    string[] diamantes = { "10D", "2D", "3D", "4D", "5D", "6D", "7D", "8D", "9D", "AD", "JD", "KD", "QD" };
-    string[] corazones = { "10H", "2H", "3H", "4H", "5H", "6H", "7H", "8H", "9H", "AH", "JH", "KH", "QH" };
-    string[] tréboles = { "10C", "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "AC", "JC", "KC", "QC" };
-    string[] picas = { "10S", "2S", "3S", "4S", "5S", "6S", "7S", "8S", "9S", "AS", "JS", "KS", "QS" };
+    private string[] cards = { "10C", "10D", "10H", "10S", "2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "AC", "AD", "AH", "AS", "JC", "JD", "JH", "JS", "KC", "KD", "KH", "KS", "QC", "QD", "QH", "QS" };
+    int[] aleatorio = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 };
+    int[] rojas = { 1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 33, 34, 37, 38, 41, 42, 45, 46, 49, 50 };
+    int[] negras = { 3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 };
+    int[] diamantes = { 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49 };
+    int[] corazones = { 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50 };
+    int[] tréboles = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 };
+    int[] picas = { 3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51 };
 
     private float remainingTime;
     private float remainingTime_panel;
@@ -86,7 +87,7 @@ public class AsociarFrases : MonoBehaviour
     private string id_juego;
     private int numero;
     private int tiempo_total;
-    private string[] cards;
+    private int[] cards_modalidad;
     private int t_panel;
     private bool isGameActive = false;
     
@@ -114,17 +115,17 @@ public class AsociarFrases : MonoBehaviour
         remainingTime_panel = tiempo_panel;
 
 
-        if      (modalidad == "Aleatorio") { cards = cards_aleatorio; }
-        else if (modalidad == "Rojas") { cards = rojas; }
-        else if (modalidad == "Negras") { cards = negras; }
-        else if (modalidad == "Picas") { cards = picas; }
-        else if (modalidad == "Treboles") { cards = tréboles; }
-        else if (modalidad == "Diamantes") { cards = diamantes; }
-        else if (modalidad == "Corazones") { cards = corazones; }
+        if (modalidad == "Aleatorio") { cards_modalidad = aleatorio; }
+        else if (modalidad == "Rojas") { cards_modalidad = rojas; }
+        else if (modalidad == "Negras") { cards_modalidad = negras; }
+        else if (modalidad == "Picas") { cards_modalidad = picas; }
+        else if (modalidad == "Treboles") { cards_modalidad = tréboles; }
+        else if (modalidad == "Diamantes") { cards_modalidad = diamantes; }
+        else if (modalidad == "Corazones") { cards_modalidad = corazones; }
 
 
         LoadCardPrefabs();
-        Random_Cartas();
+        Random_Cartas(cards_modalidad);
 
         keywordRecognizer = new KeywordRecognizer(staticKeywords);
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
@@ -142,8 +143,6 @@ public class AsociarFrases : MonoBehaviour
         // Controlar el tiempo restante
         remainingTime -= Time.deltaTime;
         contador_UI.text = $"{System.Convert.ToInt32(remainingTime)}";
-
-        UnityEngine.Debug.Log(remainingTime);
         if (remainingTime <= 0)
         {
             EndGame("Tiempo agotado");
@@ -179,16 +178,20 @@ public class AsociarFrases : MonoBehaviour
         }
     }
 
-    private void Random_Cartas()
+    private void Random_Cartas(int[] indices_disponibles)
     {
         HashSet<int> indices_cartas = new HashSet<int>();
         HashSet<int> indices_frases = new HashSet<int>();
 
+        // Selección aleatoria de cartas usando índices disponibles
         while (indices_cartas.Count < numero)
         {
-            indices_cartas.Add(Random.Range(0, cards.Length));
+            // Elegimos un índice aleatorio de la lista de índices disponibles
+            int randomIndex = Random.Range(0, indices_disponibles.Length);
+            indices_cartas.Add(indices_disponibles[randomIndex]);
         }
 
+        // Selección aleatoria de frases
         while (indices_frases.Count < numero)
         {
             indices_frases.Add(Random.Range(0, frases.Length));
@@ -196,22 +199,30 @@ public class AsociarFrases : MonoBehaviour
 
         cartas_frases.Clear();
 
+        // Convertimos los sets en listas para acceder a sus elementos por índice
         List<int> lista_indices_cartas = new List<int>(indices_cartas);
         List<int> lista_indices_frases = new List<int>(indices_frases);
 
         string frasesTextContent = "";
         for (int i = 0; i < numero; i++)
         {
+            // Accedemos a las cartas y frases seleccionadas
             int carta_index = lista_indices_cartas[i];
             int frase_index = lista_indices_frases[i];
-            string carta = cards[carta_index];
+            string carta = cards[carta_index]; // Usamos cards_aleatorio
             string frase = frases[frase_index];
+
+            // Asociamos la carta con su frase
             cartas_frases.Add(carta, frase);
 
-            frasesTextContent += $"{frase}";
+            // Creamos el contenido para las frases
+            frasesTextContent += $"{frase} ";
+
+            // Instanciamos la carta en el tablero
             InstantiateCardPrefab(i, carta, frase);
         }
     }
+
 
     private void InstantiateCardPrefab(int index, string card, string frase)
     {

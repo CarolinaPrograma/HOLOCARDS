@@ -49,6 +49,7 @@ namespace Assets.Scripts.TextureProviders
 
             foreach (var cam in WebCamTexture.devices)
             {
+                Debug.Log("detector: " + cam);
                 if (!cam.isFrontFacing)
                     return cam.name;
             }
