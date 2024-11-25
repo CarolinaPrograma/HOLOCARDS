@@ -161,7 +161,7 @@ public class MenuPrincipal : MonoBehaviour
             int tiempoTotal = Convert.ToInt32(gameData.tiempo_total?.integerValue);
             int tiempoPanel = Convert.ToInt32(gameData.tiempo_panel?.integerValue);
             string tipoCartas = gameData.tipo_cartas?.stringValue;
-
+            Debug.Log("El tiempo es: " + tiempoTotal);
             RecordarCartas_vistas.SetActive(true);
             recordarCartas.Recordar_Cartas(Id, numeroCartas, tiempoTotal, tipoCartas, tiempoPanel);
             MenuPrincipal_vistas.SetActive(false);
@@ -173,7 +173,7 @@ public class MenuPrincipal : MonoBehaviour
             int tiempoTotal = Convert.ToInt32(gameData.tiempo_total?.integerValue);
             int tiempoPanel = Convert.ToInt32(gameData.tiempo_panel?.integerValue);
             string tipoCartas = gameData.tipo_cartas?.stringValue;
-
+            Debug.Log("El tiempo es: " + tiempoTotal);
             MemorizarPalabras_vistas.SetActive(true);
             AsociarFrases.Asociar_Frases(Id, numeroCartas, tiempoTotal, tipoCartas, tiempoPanel);
             MenuPrincipal_vistas.SetActive(false);
@@ -184,7 +184,7 @@ public class MenuPrincipal : MonoBehaviour
             int numeroCartas = Convert.ToInt32(gameData.numero_cartas?.integerValue);
             int tiempoTotal = Convert.ToInt32(gameData.tiempo_total?.integerValue);
             string tipoCartas = gameData.tipo_cartas?.stringValue;
-
+            Debug.Log("El tiempo es: " + tiempoTotal);
             SumarCartas_vistas.SetActive(true);
             Sumarcartas.Sumar_Cartas(Id, numeroCartas, tiempoTotal, tipoCartas);
             MenuPrincipal_vistas.SetActive(false);

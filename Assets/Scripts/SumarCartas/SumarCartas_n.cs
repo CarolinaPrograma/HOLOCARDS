@@ -88,7 +88,7 @@ public class SumarCartas_n : MonoBehaviour
 
         id_juego = id;
         numeroparejas = parejas;
-        tiempo_total = tiempo;
+        tiempo_total = 60;
         remainingTime = tiempo_total;
 
         if (modalidad == "Solo números")
