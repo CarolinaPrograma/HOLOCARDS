@@ -154,10 +154,10 @@ public class MenuPrincipal : MonoBehaviour
         }
 
 
-        BoxCollider boxCollider = newButton.AddComponent<BoxCollider>();
+        BoxCollider boxCollider = newButton.GetComponent<BoxCollider>();
 
         RectTransform buttonRect = newButton.GetComponent<RectTransform>();
-        boxCollider.size = new Vector3(buttonRect.rect.width, buttonRect.rect.height, 12f); 
+        boxCollider.size = new Vector3(buttonRect.rect.width, buttonRect.rect.height, 25f); 
         boxCollider.center = new Vector3(0f, 0f, 0f);
 
         interactable.OnClicked.AddListener(() => boton_juego(nombre, gameId, gameData));

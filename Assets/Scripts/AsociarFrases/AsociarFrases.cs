@@ -6,6 +6,7 @@ using UnityEngine.Windows.Speech;
 using UnityEngine.UI;
 using TMPro;
 using System.Diagnostics;
+using System.Linq;
 
 public class AsociarFrases : MonoBehaviour
 {
@@ -48,7 +49,7 @@ public class AsociarFrases : MonoBehaviour
     private Dictionary<string, string> cartas_frases = new Dictionary<string, string>();
     private KeywordRecognizer keywordRecognizer;
     private string fraseReconocida;
-    private readonly string[] staticKeywords = { "Mostrar panel", "Pista" };
+    private readonly string[] staticKeywords = { "Mostrar panel", "Pista", "Fin" };
 
     private string fraseReconocidaActual = null;
     private string cartaReconocidaActual = null;
@@ -63,6 +64,8 @@ public class AsociarFrases : MonoBehaviour
     public TextMeshProUGUI texto_corrrecto_incorrecto;
     public GameObject cardContainers_actual;
     private string CartaActual ="";
+
+    public TMP_Text modadalidad_frase;
 
     // Estadísticas
     private int aciertos = 0;
@@ -90,12 +93,17 @@ public class AsociarFrases : MonoBehaviour
     private int[] cards_modalidad;
     private int t_panel;
     private bool isGameActive = false;
-    
+    private string modalidad_string;
+
 
     // Tiempos, Final...
     public TMP_Text contador_UI;
     public GameObject finalPanel;
     private bool isChecking;
+
+    // Mejora de reconocimiento
+    private List<int> recentIdentifications = new List<int>();
+    private int maxHistory = 10;
 
     public void Asociar_Frases(string id, int cartas, int tiempo, string modalidad, int tiempo_panel)
     {
@@ -113,15 +121,15 @@ public class AsociarFrases : MonoBehaviour
         remainingTime = tiempo_total;
         t_panel = tiempo_panel;
         remainingTime_panel = tiempo_panel;
-
+        modalidad_string = modalidad;
 
         if (modalidad == "Aleatorio") { cards_modalidad = aleatorio; }
-        else if (modalidad == "Rojas") { cards_modalidad = rojas; }
-        else if (modalidad == "Negras") { cards_modalidad = negras; }
-        else if (modalidad == "Picas") { cards_modalidad = picas; }
-        else if (modalidad == "Treboles") { cards_modalidad = tréboles; }
-        else if (modalidad == "Diamantes") { cards_modalidad = diamantes; }
-        else if (modalidad == "Corazones") { cards_modalidad = corazones; }
+        else if (modalidad == "Rojas") { cards_modalidad = rojas; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
+        else if (modalidad == "Negras") { cards_modalidad = negras; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
+        else if (modalidad == "Picas") { cards_modalidad = picas; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
+        else if (modalidad == "Treboles") { cards_modalidad = tréboles; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
+        else if (modalidad == "Diamantes") { cards_modalidad = diamantes; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
+        else if (modalidad == "Corazones") { cards_modalidad = corazones; modadalidad_frase.SetText("Esta partida solo reconoce " + modalidad_string); }
 
 
         LoadCardPrefabs();
@@ -150,7 +158,7 @@ public class AsociarFrases : MonoBehaviour
             return;
         }
 
-        if (isChecking && detector.HasResults() && !uiPanel.activeSelf)
+        if (detector.HasResults() && !uiPanel.activeSelf)
         {
             var results = detector.GetResults();
             HandleResults(results);
@@ -256,6 +264,9 @@ public class AsociarFrases : MonoBehaviour
     {
         uiPanel.SetActive(true);
 
+        if (isGameActive) {
+            remainingTime_panel = 2;
+        }
         while (remainingTime_panel > 0)
         {
 
@@ -274,8 +285,26 @@ public class AsociarFrases : MonoBehaviour
     {
         foreach (var box in results)
         {
-            var card = cards[box.bestClassIndex];
-            ReconocerCarta(card);
+            recentIdentifications.Add(box.bestClassIndex);
+
+            if (recentIdentifications.Count > maxHistory)
+            {
+                recentIdentifications.RemoveAt(0);
+            }
+
+            int mostFrequentClassIndex = GetMostFrequentIndex(recentIdentifications);
+            UnityEngine.Debug.Log(mostFrequentClassIndex);
+
+            if (mostFrequentClassIndex >= 0 && mostFrequentClassIndex < cards.Length)
+            {
+                var card = cards[mostFrequentClassIndex];
+
+                if (cards_modalidad.Contains(mostFrequentClassIndex))
+                {
+                    UnityEngine.Debug.Log("LLamo a reconocer cartas " + card);
+                    ReconocerCarta(card);
+                }
+            }
         }
     }
 
@@ -285,7 +314,7 @@ public class AsociarFrases : MonoBehaviour
         {
             return; 
         }
-
+        UnityEngine.Debug.Log("ReconocerCarta ");
         InstantiateCardPrefab_reconocida(card);
         CartaActual = card;
         cronometro.Restart();
@@ -366,6 +395,11 @@ public class AsociarFrases : MonoBehaviour
             return;
         }
 
+        else if (args.text == "Fin")
+        {
+            EndGame("El mazo se ha acabado");
+        }
+
         if (args.text == fraseReconocida)
         {
             panel_correcto_incorrecto.SetActive(true);
@@ -373,13 +407,14 @@ public class AsociarFrases : MonoBehaviour
             cronometro.Stop();
             tiempo_carta.Add((int)cronometro.ElapsedMilliseconds);
             keywordRecognizer.Stop();
-            keywordRecognizer.Dispose();
+            //keywordRecognizer.Dispose();
             feedback.SetActive(true);
             texto_corrrecto_incorrecto.SetText($"¡Muy bien! Coja la siguiente carta");
             Invoke("Apagar_feedback", 3f);
             aciertos++; 
             fraseReconocidaActual = null;
             cartaReconocidaActual = null;
+            keywordRecognizer.Start();
         }
         else
         {
@@ -518,11 +553,21 @@ public class AsociarFrases : MonoBehaviour
 
     private async void EndGame(string message)
     {
+        cardContainers_actual.SetActive(false);
         isGameActive = false;
         keywordRecognizer.Stop();
         keywordRecognizer.Dispose();
         UnityEngine.Debug.Log(message);
         await MenuPrincipal.resultados_AsociarFrases(id_juego, tiempo_carta, exito, aciertos, fallos, numero_pistas);
         finalPanel.SetActive(true);
+    }
+
+    private int GetMostFrequentIndex(List<int> indices)
+    {
+        return indices
+            .GroupBy(i => i) // Agrupar por índice
+            .OrderByDescending(g => g.Count()) // Ordenar por frecuencia
+            .First() // Obtener el grupo más frecuente
+            .Key; // Obtener el índice (la moda)
     }
 }

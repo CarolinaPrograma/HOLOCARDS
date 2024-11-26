@@ -399,6 +399,8 @@ public class SumarCartas_n : MonoBehaviour
 
     private async void EndGame(string message)
     {
+        cardContainers[0].SetActive(false);
+        cardContainers[1].SetActive(false);
         isGameActive = false;
         keywordRecognizer.Stop();
         keywordRecognizer.Dispose();

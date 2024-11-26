@@ -28,9 +28,9 @@ public class RecordarCartas : MonoBehaviour
     int[] aleatorio = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 };
     int[] rojas = { 1, 2, 5, 6, 9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 33, 34, 37, 38, 41, 42, 45, 46, 49, 50 };
     int[] negras = { 3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 };
-    int[] diamantes = { 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49 }; 
+    int[] diamantes = { 1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49 };
     int[] corazones = { 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50 };
-    int[] tréboles = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 }; 
+    int[] tréboles = { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48 };
     int[] picas = { 3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51 };
 
 
@@ -66,6 +66,7 @@ public class RecordarCartas : MonoBehaviour
     private int tiempo_total;
     private int[] cards_modalidad;
     private int t_panel;
+    private string modalidad_string;
 
     // Estadísticas
     private int numero_pistas = 0;
@@ -74,9 +75,16 @@ public class RecordarCartas : MonoBehaviour
     private int tiempo_tardado;
     public MenuPrincipal MenuPrincipal;
 
+    // Mejora de reconocimiento
+    private float tiempoUltimaReconocida = 0f;
+    private float tiempoLimite = 3f;
+    private bool cartasReconocidasCompletas = false;
+    private List<int> recentIdentifications = new List<int>();
+    private int maxHistory = 10;
+
     public void Recordar_Cartas(string id, int cartas, int tiempo, string modalidad, int tiempo_panel)
     {
-        keywordRecognizer = null; 
+        keywordRecognizer = null;
         if (detector == null)
         {
             UnityEngine.Debug.LogError("Detector reference not set in GameController.");
@@ -85,10 +93,11 @@ public class RecordarCartas : MonoBehaviour
 
         id_juego = id;
         numero = cartas;
-        tiempo_total =  tiempo;
+        tiempo_total = tiempo;
         remainingTime = tiempo_total;
         t_panel = tiempo_panel;
         remainingTime_panel = tiempo_panel;
+        modalidad_string = modalidad;
 
 
         if (modalidad == "Aleatorio") { cards_modalidad = aleatorio; }
@@ -145,16 +154,16 @@ public class RecordarCartas : MonoBehaviour
         }
         else if (count <= 6)
         {
-            cardContainerGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            cardContainerGrid.constraint = GridLayoutGroup.Constraint.FixedRowCount;
             cardContainerGrid.constraintCount = 2;
         }
         else
         {
-            cardContainerGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            cardContainerGrid.constraint = GridLayoutGroup.Constraint.FixedRowCount;
             cardContainerGrid.constraintCount = 3;
         }
 
-        cardContainerGrid.cellSize = new Vector2(110, 110);
+        cardContainerGrid.cellSize = new Vector2(70, 70);
         cardContainerGrid.spacing = new Vector2(1, 1);
     }
 
@@ -162,7 +171,6 @@ public class RecordarCartas : MonoBehaviour
     {
         HashSet<int> indices_cartas = new HashSet<int>();
 
-        // Selecciona índices de la lista de índices disponibles
         while (indices_cartas.Count < numero)
         {
             int randomIndex = Random.Range(0, indices_disponibles.Length);
@@ -218,12 +226,14 @@ public class RecordarCartas : MonoBehaviour
         {
             exito = false;
             tiempo_tardado = tiempo_total;
+            feedback.SetActive(false);
             EndGame("Tiempo agotado");
             return;
         }
 
         if (isChecking && detector.HasResults() && !uiPanel.activeSelf)
         {
+            UnityEngine.Debug.Log("Estoy comprobando");
             var results = detector.GetResults();
             HandleResults(results);
         }
@@ -231,11 +241,35 @@ public class RecordarCartas : MonoBehaviour
 
     private void HandleResults(IEnumerable<ResultBox> results)
     {
+        UnityEngine.Debug.Log("Entro a HandleResults");
         foreach (var box in results)
         {
-            var card = cards[box.bestClassIndex];
-            ReconocerCarta(card);
+            recentIdentifications.Add(box.bestClassIndex);
 
+            if (recentIdentifications.Count > maxHistory)
+            {
+                recentIdentifications.RemoveAt(0);
+            }
+
+            int mostFrequentClassIndex = GetMostFrequentIndex(recentIdentifications);
+            UnityEngine.Debug.Log(mostFrequentClassIndex);
+
+            if (mostFrequentClassIndex >= 0 && mostFrequentClassIndex < cards.Length)
+            {
+                var card = cards[mostFrequentClassIndex];
+
+                if (cards_modalidad.Contains(mostFrequentClassIndex))
+                {
+                    UnityEngine.Debug.Log("LLamo a reconocer cartas " + card);
+                    ReconocerCarta(card);
+                }
+                else
+                {
+                    feedback.SetActive(true);
+                    texto_feedback.SetText("Esta partida solo reconoce " + modalidad_string);
+                    Invoke("Apagar_feedback", 2f);
+                }
+            }
         }
     }
 
@@ -245,8 +279,10 @@ public class RecordarCartas : MonoBehaviour
         texto_feedback.SetText("Reconociendo...");
         isChecking = true;
         UnityEngine.Debug.Log("Reconociendo...");
-        yield return new WaitForSeconds(5); 
+        yield return new WaitForSeconds(10);
         Invoke("Cerrar_Feedback", 0f);
+        EliminarCardContainers(panel_reconocidas);
+        cartasReconocidas.Clear();
         isChecking = false;
     }
 
@@ -258,9 +294,8 @@ public class RecordarCartas : MonoBehaviour
         }
 
         InstantiateCardPrefab(card, panel_reconocidas);
-
         cartasReconocidas.Add(card);
-        UnityEngine.Debug.Log($"Carta reconocida: {card}");
+        
 
         if (cartasReconocidas.Count == numero)
         {
@@ -281,23 +316,36 @@ public class RecordarCartas : MonoBehaviour
         {
             UnityEngine.Debug.Log("Las cartas reconocidas coinciden con las cartas prefabricadas.");
             feedback.SetActive(true);
-            texto_feedback.SetText("Correcto!");
-            Invoke("Cerrar_Feedbak", 2f);
-            EliminarCardContainers(panel_reconocidas);
+            texto_feedback.SetText("¡Correcto!");
+            StartCoroutine(EsperarYEliminarContenedores());
             exito = true;
             tiempo_tardado = (int)(tiempo_total - remainingTime);
-            EndGame("¡Enhorabuena!");
+            StartCoroutine(EsperarYFinalizar());
         }
         else
         {
             UnityEngine.Debug.Log("Las cartas reconocidas no coinciden con las cartas prefabricadas.");
+            isChecking = false;
             feedback.SetActive(true);
-            texto_feedback.SetText("Vuelve a intentarlo!");
+            texto_feedback.SetText("¡Vuelve a intentarlo!");
+            Invoke("Cerrar_Feedback", 1f);
             cartasReconocidas.Clear();
-            Invoke("Cerrar_Feedback", 2f);
             numero_intentos++;
-            EliminarCardContainers(panel_reconocidas);
+            StartCoroutine(EsperarYEliminarContenedores());
         }
+    }
+
+    private IEnumerator EsperarYEliminarContenedores()
+    {
+        yield return new WaitForSeconds(1f);
+        EliminarCardContainers(panel_reconocidas);
+    }
+
+    private IEnumerator EsperarYFinalizar()
+    {
+        yield return new WaitForSeconds(2f);
+        Invoke("Cerrar_Feedbak", 1f);
+        EndGame("¡Enhorabuena!"); ;
     }
 
     private bool comparar_Listas(List<string> a, List<string> b)
@@ -345,6 +393,10 @@ public class RecordarCartas : MonoBehaviour
     {
         uiPanel.SetActive(true);
 
+        if (isGameActive)
+        {
+            remainingTime_panel = 2;
+        }
         while (remainingTime_panel > 0)
         {
 
@@ -366,7 +418,7 @@ public class RecordarCartas : MonoBehaviour
         string pista = GenerarPistaAleatoria();
         ayuda.SetActive(true);
         texto_feedback.text = pista;
-        Invoke("Desactiar_ayuda", 5f);
+        Invoke("Desactiar_ayuda", 2f);
     }
 
     public void boton_comprobar()
@@ -423,6 +475,13 @@ public class RecordarCartas : MonoBehaviour
         {
             textMeshPros[i].text = numeros[i];
             textMeshPros[i].color = Color.black;
+
+            if (i < rawImages.Count)
+            {
+                Color imageColor = rawImages[i].color;
+                imageColor.a = 1f; // Opacidad al 100%
+                rawImages[i].color = imageColor;
+            }
         }
         return "Los números de las cartas son: " + string.Join(", ", numeros);
     }
@@ -440,7 +499,14 @@ public class RecordarCartas : MonoBehaviour
             if (paloImage != null)
             {
                 rawImages[i].texture = paloImage;
-                textMeshPros[i].text = ""; 
+                textMeshPros[i].text = "";
+
+                if (i < rawImages.Count)
+                {
+                    Color imageColor = rawImages[i].color;
+                    imageColor.a = 1f; // Opacidad al 100%
+                    rawImages[i].color = imageColor;
+                }
             }
             else
             {
@@ -467,16 +533,37 @@ public class RecordarCartas : MonoBehaviour
 
         if (paloImage != null)
         {
-            rawImages[0].texture = paloImage; // Asignar a la primera imagen
+            rawImages[0].texture = paloImage;
+            Color imageColor = rawImages[0].color;
+            imageColor.a = 1f;
+            rawImages[0].color = imageColor;
         }
         else
         {
             UnityEngine.Debug.LogWarning($"Image for {palo} not found at path {imagenPath}");
         }
 
-        // Asignar el número de la carta
         textMeshPros[0].text = carta.Substring(0, carta.Length - 1);
         textMeshPros[0].color = Color.white;
+
+        Color textColor = textMeshPros[0].color;
+        textColor.a = 1f; // Opacidad a 100%
+        textMeshPros[0].color = textColor;
+
+        for (int i = 1; i < rawImages.Count; i++)
+        {
+            Color extraImageColor = rawImages[i].color;
+            extraImageColor.a = 0f;
+            rawImages[i].color = extraImageColor;
+        }
+
+        for (int i = 1; i < textMeshPros.Count; i++)
+        {
+            textMeshPros[i].text = "";
+            Color extraTextColor = textMeshPros[i].color;
+            extraTextColor.a = 0f;
+            textMeshPros[i].color = extraTextColor;
+        }
 
         return $"Una de las cartas es: {carta}";
     }
@@ -520,8 +607,18 @@ public class RecordarCartas : MonoBehaviour
         isGameActive = false;
         keywordRecognizer.Stop();
         keywordRecognizer.Dispose();
+        feedback.SetActive(false);
         UnityEngine.Debug.Log(message);
         await MenuPrincipal.resultados_RecordarCartas(id_juego, numero_pistas, exito, numero_intentos, tiempo_tardado);
         finalPanel.SetActive(true);
+    }
+
+    private int GetMostFrequentIndex(List<int> indices)
+    {
+        return indices
+            .GroupBy(i => i) // Agrupar por índice
+            .OrderByDescending(g => g.Count()) // Ordenar por frecuencia
+            .First() // Obtener el grupo más frecuente
+            .Key; // Obtener el índice (la moda)
     }
 }
