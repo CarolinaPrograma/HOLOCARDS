@@ -92,7 +92,6 @@ public class MenuPrincipal : MonoBehaviour
                     foreach (var game in gamesForToday)
                     {
                         string gameId = game.name.Split('/')[game.name.Split('/').Length - 1];
-                        Debug.Log(gameId);
                         CreateGameButton(gameId, game.fields);
                     }
                 }
@@ -102,6 +101,12 @@ public class MenuPrincipal : MonoBehaviour
                     no_juegos.SetActive(true);
                     si_juegos.SetActive(false);
                 }
+            }
+            else
+            {
+                Debug.Log("No hay juegos asignados para hoy.");
+                no_juegos.SetActive(true);
+                si_juegos.SetActive(false);
             }
         }
         catch (Exception ex)
@@ -148,9 +153,16 @@ public class MenuPrincipal : MonoBehaviour
             return;
         }
 
-        // Add the onClick event
+
+        BoxCollider boxCollider = newButton.AddComponent<BoxCollider>();
+
+        RectTransform buttonRect = newButton.GetComponent<RectTransform>();
+        boxCollider.size = new Vector3(buttonRect.rect.width, buttonRect.rect.height, 12f); 
+        boxCollider.center = new Vector3(0f, 0f, 0f);
+
         interactable.OnClicked.AddListener(() => boton_juego(nombre, gameId, gameData));
     }
+
 
     private void boton_juego(string buttonText_Titulo, string Id, Fields gameData)
     {

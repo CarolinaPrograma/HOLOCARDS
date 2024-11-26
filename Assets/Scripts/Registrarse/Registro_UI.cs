@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class Registro_UI : MonoBehaviour
 {
@@ -11,8 +12,8 @@ public class Registro_UI : MonoBehaviour
     public GameObject menuPrincipal;
     public GameObject login_registro;
 
-    public TMP_InputField emailInputField;
-    public TMP_InputField passwordInputField;
+    public InputField emailInputField;
+    public InputField passwordInputField;
     public TMP_Text feedbackText;
 
     private static readonly HttpClient httpClient = new HttpClient();
