@@ -80,7 +80,7 @@ public class RecordarCartas : MonoBehaviour
     private float tiempoLimite = 3f;
     private bool cartasReconocidasCompletas = false;
     private List<int> recentIdentifications = new List<int>();
-    private int maxHistory = 10;
+    private int maxHistory = 15;
 
     public void Recordar_Cartas(string id, int cartas, int tiempo, string modalidad, int tiempo_panel)
     {
@@ -283,6 +283,7 @@ public class RecordarCartas : MonoBehaviour
         Invoke("Cerrar_Feedback", 0f);
         EliminarCardContainers(panel_reconocidas);
         cartasReconocidas.Clear();
+        recentIdentifications.Clear();
         isChecking = false;
     }
 

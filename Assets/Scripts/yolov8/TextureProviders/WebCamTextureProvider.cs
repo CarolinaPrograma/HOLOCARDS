@@ -20,7 +20,7 @@ namespace Assets.Scripts.TextureProviders
             InputTexture = webCamTexture;
         }
 
-        public WebCamTextureProvider(WebCamTextureProvider provider,int width, int height, TextureFormat format = TextureFormat.RGB24) : this(width, height, format, provider?.cameraName)
+        public WebCamTextureProvider(WebCamTextureProvider provider, int width, int height, TextureFormat format = TextureFormat.RGB24) : this(width, height, format, provider?.cameraName)
         {
         }
 
@@ -49,7 +49,6 @@ namespace Assets.Scripts.TextureProviders
 
             foreach (var cam in WebCamTexture.devices)
             {
-                Debug.Log("detector: " + cam);
                 if (!cam.isFrontFacing)
                     return cam.name;
             }

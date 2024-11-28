@@ -47,7 +47,7 @@ public class SumarCartas_n : MonoBehaviour
     private int ActualSum;
 
     private List<int> recentIdentifications = new List<int>();
-    private int maxHistory = 10;
+    private int maxHistory = 15;
 
     private KeywordRecognizer keywordRecognizer;
     private bool HaDichoFrase;
@@ -88,7 +88,7 @@ public class SumarCartas_n : MonoBehaviour
 
         id_juego = id;
         numeroparejas = parejas;
-        tiempo_total = 60;
+        tiempo_total = tiempo;
         remainingTime = tiempo_total;
 
         if (modalidad == "Solo números")
@@ -175,7 +175,8 @@ public class SumarCartas_n : MonoBehaviour
                 else
                 {
                     feedback.SetActive(true);
-                    texto_feedback.SetText("Esta partida es sin figuras!");
+                    texto_feedback.SetText("¡Esta partida es sin figuras!");
+                    recentIdentifications.Clear();
                     Invoke("Apagar_feedback", 2f);
                 }
 
@@ -272,7 +273,7 @@ public class SumarCartas_n : MonoBehaviour
                     UnityEngine.Debug.Log($"Incorrect sum spoken! Try again. Actual sum is {ActualSum}");
 
                     feedback.SetActive(true);
-                    texto_feedback.SetText("¡Suma incorrecta. Inténtalo otra vez.");
+                    texto_feedback.SetText("¡Suma incorrecta! Inténtalo otra vez.");
                     Invoke("Apagar_feedback", 3f);
 
 
