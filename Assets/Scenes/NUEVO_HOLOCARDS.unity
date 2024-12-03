@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -5451,7 +5451,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 43253009, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 43253009, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_FontData.m_Alignment
@@ -5489,7 +5489,7 @@ PrefabInstance:
     - target: {fileID: 1227984219132118273, guid: 9039aae1f4c02da49a5d92f4a1c91fd4,
         type: 3}
       propertyPath: m_Text
-      value: 12345678
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1765799051758416192, guid: 9039aae1f4c02da49a5d92f4a1c91fd4,
         type: 3}
@@ -12021,7 +12021,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 43253009, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 43253009, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_FontData.m_Alignment
@@ -12033,7 +12033,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1446504177, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_Text
-      value: 
+      value: josea@paciente.com
       objectReference: {fileID: 0}
     - target: {fileID: 1446504177, guid: 9039aae1f4c02da49a5d92f4a1c91fd4, type: 3}
       propertyPath: m_Color.b
@@ -12059,7 +12059,7 @@ PrefabInstance:
     - target: {fileID: 1227984219132118273, guid: 9039aae1f4c02da49a5d92f4a1c91fd4,
         type: 3}
       propertyPath: m_Text
-      value: josea@paciente.com
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1765799051758416192, guid: 9039aae1f4c02da49a5d92f4a1c91fd4,
         type: 3}

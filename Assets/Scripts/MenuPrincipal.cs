@@ -206,6 +206,7 @@ public class MenuPrincipal : MonoBehaviour
     public async Task resultados_SumarCartas(string id, List<int> tiempo_suma, int tiempo_tardado, bool exito, int aciertos, int fallos)
     {
         SumarCartas_clase sumar = new SumarCartas_clase();
+        sumar.aciertos = aciertos;
         sumar.fallos = fallos;
         sumar.tiempo_suma = tiempo_suma;
         sumar.tiempo_tardado = tiempo_tardado;
@@ -224,7 +225,8 @@ public class MenuPrincipal : MonoBehaviour
                                     }}
                                 }},
                                 ""tiempo_tardado"": {{ ""integerValue"": {sumar.tiempo_tardado} }},
-                                ""exito"": {{ ""booleanValue"": {sumar.exito.ToString().ToLower()} }}
+                                ""exito"": {{ ""booleanValue"": {sumar.exito.ToString().ToLower()} }},
+                                ""aciertos"": {{ ""integerValue"": {sumar.aciertos} }}
                             }}
                         }}
                     }},
@@ -239,6 +241,7 @@ public class MenuPrincipal : MonoBehaviour
     public async Task resultados_AsociarFrases(string id, List<int> tiempo_carta, bool exito, int aciertos, int fallos, int numero_pistas)
     {
         AsociarFrases_clase asociar = new AsociarFrases_clase();
+        asociar.aciertos = aciertos;
         asociar.tiempo_carta = tiempo_carta;
         asociar.fallos = fallos;
         asociar.aciertos = aciertos;
@@ -259,7 +262,7 @@ public class MenuPrincipal : MonoBehaviour
                                 ""aciertos"": {{ ""integerValue"": {asociar.aciertos} }},
                                 ""fallos"": {{ ""integerValue"": {asociar.fallos} }},
                                 ""numero_pistas"": {{ ""integerValue"": {asociar.numero_pistas} }},
-                                ""exito"": {{ ""booleanValue"": {asociar.exito.ToString().ToLower()} }}
+                                ""exito"": {{ ""booleanValue"": {asociar.exito.ToString().ToLower()} }},
                             }}
                         }}
                     }},
@@ -287,7 +290,9 @@ public class MenuPrincipal : MonoBehaviour
                                 ""numero_pistas"": {{ ""integerValue"": {recordar.numero_pistas} }},
                                 ""exito"": {{ ""booleanValue"": {recordar.exito.ToString().ToLower()} }},
                                 ""numero_intentos"": {{ ""integerValue"": {recordar.numero_intentos} }},
-                                ""tiempo_tardado"": {{ ""integerValue"": {recordar.tiempo_tardado} }}
+                                ""tiempo_tardado"": {{ ""integerValue"": {recordar.tiempo_tardado} }},
+                                ""aciertos"": {{ ""integerValue"": 0 }},
+                                ""fallos"": {{ ""integerValue"": {recordar.numero_intentos} }}
                             }}
                         }}
                     }},
